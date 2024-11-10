@@ -1,0 +1,87 @@
+<DATAFILE>
+
+[FILEINFO]
+file='paxlovid_processed_data_nov_29_2023.csv'
+delimiter = comma
+header = {PID, Days_post_symptom_onset, VL, Censoring, Pax_day_rel_symptom, Group, Classification}
+
+[CONTENT]
+PID = {use=identifier}
+Days_post_symptom_onset = {use=time}
+VL = {use=observation, name=VL, type=continuous}
+Censoring = {use=censored}
+Pax_day_rel_symptom = {use=regressor}
+Group = {use=covariate, type=categorical}
+Classification = {use=covariate, type=categorical}
+
+[FILTER]
+paxlovid_processed_data_nov_29_2023_filtered = {origin='paxlovid_processed_data_nov_29_2023.csv', filter={{selectIds='Group==1'}, {selectIds='Group==2'}}}
+
+[APPLICATION]
+computation=paxlovid_processed_data_nov_29_2023_filtered
+
+<MODEL>
+
+[COVARIATE]
+input = {Classification, Group}
+
+Classification = {type=categorical, categories={'No Viral Rebound', 'Viral Rebound'}}
+Group = {type=categorical, categories={1, 2}}
+
+[INDIVIDUAL]
+input = {beta_exp_pop, omega_beta_exp, p_pop, omega_p, t00_pop, omega_t00, phi_power_pop, omega_phi_power, rho_pop, omega_rho, TT_pop, omega_TT, I_rho_pop, omega_I_rho, delta_0_pop, omega_delta_0}
+
+DEFINITION:
+beta_exp = {distribution=logitNormal, min=7.5, max=9, typical=beta_exp_pop, sd=omega_beta_exp}
+p = {distribution=logNormal, typical=p_pop, sd=omega_p}
+t00 = {distribution=logitNormal, min=7, max=28, typical=t00_pop, sd=omega_t00}
+phi_power = {distribution=logitNormal, min=5, max=12, typical=phi_power_pop, sd=omega_phi_power}
+rho = {distribution=logitNormal, typical=rho_pop, sd=omega_rho}
+TT = {distribution=logNormal, typical=TT_pop, sd=omega_TT}
+I_rho = {distribution=logNormal, typical=I_rho_pop, sd=omega_I_rho}
+delta_0 = {distribution=logNormal, typical=delta_0_pop, sd=omega_delta_0}
+
+[LONGITUDINAL]
+input = {a1}
+
+file = 'Model.txt'
+
+DEFINITION:
+VL = {distribution=normal, prediction=ValueVt, errorModel=constant(a1)}
+
+<FIT>
+data = VL
+model = VL
+
+<PARAMETER>
+I_rho_pop = {value=1.5, method=MLE}
+TT_pop = {value=3, method=MLE}
+a1 = {value=1.236641517825628, method=MLE}
+beta_exp_pop = {value=8.199999999999999, method=MLE}
+delta_0_pop = {value=1.5, method=MLE}
+omega_I_rho = {value=0.05, method=MLE}
+omega_TT = {value=0.2, method=MLE}
+omega_beta_exp = {value=0.1, method=MLE}
+omega_delta_0 = {value=0.1, method=MLE}
+omega_p = {value=0.1, method=MLE}
+omega_phi_power = {value=0.05, method=MLE}
+omega_rho = {value=0.1, method=MLE}
+omega_t00 = {value=0.1, method=MLE}
+p_pop = {value=2.8, method=MLE}
+phi_power_pop = {value=6.5, method=MLE}
+rho_pop = {value=0.1, method=MLE}
+t00_pop = {value=12, method=MLE}
+
+<MONOLIX>
+
+[TASKS]
+populationParameters()
+individualParameters(method = {conditionalMean, conditionalMode })
+fim(method = StochasticApproximation)
+logLikelihood(method = ImportanceSampling)
+plotResult(method = {indfits, parameterdistribution, covariancemodeldiagnosis, covariatemodeldiagnosis, obspred, vpc, residualsscatter, residualsdistribution, randomeffects, saemresults })
+
+[SETTINGS]
+GLOBAL:
+exportpath = 'Model_fit'
+

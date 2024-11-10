@@ -1,0 +1,89 @@
+DESCRIPTION: Paxlovid: LPM
+
+[LONGITUDINAL]
+input = {beta_exp, p, rho, phi_power, delta_0, t00, TT, I_rho, Rg};  
+Rg = {use=regressor}
+
+EQUATION:
+;TT = 2
+t0 = -TT
+beta = 10^(-beta_exp)
+p_t = 10^p
+phi = 10^(-phi_power)
+k = 4
+c = 10
+sigma = 0.5
+n = 1
+
+;ke = 2.77
+EC50 = 62
+eps_max = 1
+
+T_0 = 8*10^7
+R_0 = 0
+E_0 = 1
+I_0 = 0
+Vt_0 = 0 
+AC_0 = 0
+
+;if (I > 10^I_rho)
+;	rho = 0
+;else
+;	rho = rho_0
+;end
+
+delta_max = 10*delta_0
+
+if t<t00
+	delta = delta_0
+else
+    delta = delta_max - (delta_max - delta_0)*exp(-sigma*(t-t00))
+end
+
+Id = 1/2; 		%drug taken once every 12 hours
+ka   = 17.53;   %callculated from tmax and ke
+ke   = 2.77;    %based on elimination half-life of 6.05 hours
+Ch   = 6.25e3;
+
+if Rg < 100
+	ti = Rg
+	te = ti+4.5;
+	Ce = 2.4774e3;
+	kae = ka/(ke-ka);
+
+    if t<ti
+        
+        C = 0;
+
+    elseif t>ti && t<=te
+
+        eke = exp(-ke*t)
+        Nd  = floor(t/Id) + 1
+
+          C = Ch*kae*(eke/(exp(ka*Id)-1))*(1 - exp((ke-ka)*t)*(1-exp(Nd*ka*Id)) + (exp(ke*Id) - exp(ka*Id))*((exp((Nd-1)*ke*Id) 			-1)/(exp(ke*Id)-1)) - exp(((Nd-1)*ke+ka)*Id))
+        
+    elseif t>te
+        eke = exp(-ke*(t-te))
+        eka = exp(-ka*(t-te))
+        C = Ce*exp(-ke*((t-te)+1/2)) + Ch*kae*(eka-eke)
+    
+    end
+    
+end
+
+eff = eps_max*C/(C+EC50)
+
+ddt_T = - beta*T*Vt - phi*I*T + rho*(1-I^n/(I^n+(10^I_rho)^n))*R
+ddt_R =  phi*I*T - rho*(1-I^n/(I^n+(10^I_rho)^n))*R
+ddt_E  = beta*T*Vt - k*E
+ddt_I = k*E - delta*I
+ddt_Vt = (1-eff)*p_t*I - c*Vt
+
+ValueVt = log10( max(0.0000001, Vt) )
+
+;ValueVt = log10( Vt )
+;ValueVi = log10( Vi )
+
+
+OUTPUT:
+output = {ValueVt}
