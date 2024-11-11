@@ -10,7 +10,6 @@ Order of code execution:
   (2) Run Monolix file for fitting.
   (3) Run MATLAB files in folder #1 to replot the model fit.
   (4) Run MATLAB files in folder #2 to generate in-silico cohort.
-  (5) Run MATLAB files in folder #3 to examine different treatments.
-  (6) Run MATLAB files in folder #4 to plot.
+  (5) Run MATLAB files in folder #3 to plot the results of different treatments (subfolders of folder #3).
 
   This set of code will generate main text figures 2 and 3 in https://doi.org/10.1101/2024.09.13.613000.  
