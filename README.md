@@ -13,3 +13,5 @@ Order of code execution:
   (5) Run MATLAB files in folder #3 to plot the results of different treatments (subfolders of folder #3).
 
   This set of code will generate main text figures 2 and 3 in https://doi.org/10.1101/2024.09.13.613000.  
+
+  Straightforward modifications of these codes will also give the figures in the SM. If you have any questions, email ttphan (at) lanl (dot) gov.
